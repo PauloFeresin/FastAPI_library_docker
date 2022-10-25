@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 
 # This defines what the user will be able to 'post' in the DB
@@ -13,8 +14,18 @@ class Books(BaseModel):
 
 
 class Author(BaseModel):
-    name: str
-    age: int
+    firstname: str
+    lastname: str
+    nationality: str
+
+    class Config:
+        orm_mode = True
+
+
+class Client(BaseModel):
+    firstname: str
+    middlename: str
+    lastname: str
 
     class Config:
         orm_mode = True
