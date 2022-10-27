@@ -1,14 +1,16 @@
 import uvicorn
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi_sqlalchemy import DBSessionMiddleware, db
 from dotenv import load_dotenv
 
-from models import Author, Book, Client, Requests
-from schema import Books as SchemaBook
-from schema import Author as SchemaAuthor
-from schema import Client as SchemaClient
-from schema import Request as SchemaRequest
+
+from models.models import Author, Book, Client, Requests
+from schema.schema import Books as SchemaBook
+from schema.schema import Author as SchemaAuthor
+from schema.schema import Client as SchemaClient
+from schema.schema import Request as SchemaRequest
+from schema.schema import ClientDelete as SchemaClientDelete
 
 
 load_dotenv(".env")
@@ -47,7 +49,7 @@ def add_author(author: SchemaAuthor):
 
 @app.get("/books/")
 def get_books():
-    charge_request(20.50, 1, "/books")
+    charge_request(0.50, 1, "/books")
     books = db.session.query(Book).all()
 
     return books
@@ -61,7 +63,15 @@ def add_client(client: SchemaClient):
     return db_client
 
 
+@app.delete("/delete-user/{client_id}/")
+def delete_user(client_id: int):
+    client = db.session.get(Client, client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    db.session.delete(client)
+    db.session.commit()
 
+    return {"Message": "client deleted"}
 
 
 

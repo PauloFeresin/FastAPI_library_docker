@@ -30,7 +30,7 @@ class Author(Base):
 
 class Client(Base):
     __tablename__ = "client"
-    id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(Integer, primary_key=True, index=True)
     firstname = Column(String)
     middlename = Column(String)
     lastname = Column(String)

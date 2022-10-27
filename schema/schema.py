@@ -39,3 +39,9 @@ class Request(BaseModel):
     class Config:
         orm_mode = True
 
+
+class ClientDelete(BaseModel):
+    client_id = int
+    firstname: Optional[float]
+    middlename: Optional[int]
+    lastname: Optional[str]
