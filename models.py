@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -37,3 +37,11 @@ class Client(Base):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
     
+
+class Requests(Base):
+    __tablename__ = "requests"
+    id = Column(Integer, primary_key=True, index=True)
+    request_value = Column(Float)
+    request_amount = Column(Integer)
+    endpoint = Column(String)
+

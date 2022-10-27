@@ -4,11 +4,11 @@ from fastapi import FastAPI
 from fastapi_sqlalchemy import DBSessionMiddleware, db
 from dotenv import load_dotenv
 
-from models import Author, Book, Client
+from models import Author, Book, Client, Requests
 from schema import Books as SchemaBook
 from schema import Author as SchemaAuthor
 from schema import Client as SchemaClient
-
+from schema import Request as SchemaRequest
 
 
 load_dotenv(".env")
@@ -22,6 +22,14 @@ app.add_middleware(DBSessionMiddleware, db_url=os.environ["DATABASE_URL"])
 async def root():
     return {"message": "Hello World"}
 
+
+def charge_request(value, amount, endpoint):
+    db_charge = Requests(request_value=value, request_amount=amount, endpoint=endpoint)
+    db.session.add(db_charge)
+    db.session.commit()
+
+    return
+    
 @app.post("/add-book/", response_model=SchemaBook)
 def add_book(book: SchemaBook):
     db_book = Book(title=book.title, rating=book.rating, author_id=book.author_id)
@@ -39,6 +47,7 @@ def add_author(author: SchemaAuthor):
 
 @app.get("/books/")
 def get_books():
+    charge_request(20.50, 1, "/books")
     books = db.session.query(Book).all()
 
     return books
@@ -56,6 +65,10 @@ def add_client(client: SchemaClient):
 
 
 
-# This is to run the API without docker container
+
+
+
+
+# This is to run the API without docker container, locally
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

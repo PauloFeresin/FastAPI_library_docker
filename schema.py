@@ -29,3 +29,13 @@ class Client(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class Request(BaseModel):
+    request_value: float
+    request_amount: int
+    endpoint: str
+
+    class Config:
+        orm_mode = True
+
