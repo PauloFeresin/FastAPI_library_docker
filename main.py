@@ -1,16 +1,22 @@
-import uvicorn
+from email.policy import default
 import os
-from fastapi import FastAPI, HTTPException
+import uvicorn
+from fastapi import FastAPI, HTTPException, Body, Depends
 from fastapi_sqlalchemy import DBSessionMiddleware, db
 from dotenv import load_dotenv
 
-
-from models.models import Author, Book, Client, Requests
+from utils.utils import charge_request
+from models.models import Author, Book, Client, User
 from schema.schema import Books as SchemaBook
 from schema.schema import Author as SchemaAuthor
 from schema.schema import Client as SchemaClient
-from schema.schema import Request as SchemaRequest
-from schema.schema import ClientDelete as SchemaClientDelete
+from schema.schema import PostSchema, UserSchema, UserLoginSchema
+from auth.jwt_handler import signJWT
+from auth.jwt_bearer import jwtBearer
+
+
+users = []
+
 
 
 load_dotenv(".env")
@@ -20,23 +26,43 @@ app = FastAPI()
 # adds and creates db connectivity, to perform commits and such
 app.add_middleware(DBSessionMiddleware, db_url=os.environ["DATABASE_URL"])
 
-@app.get("/")
-async def root():
+
+@app.get("/", tags=["test"])
+def root():
     return {"message": "Hello World"}
 
 
-def charge_request(value, amount, endpoint):
-    db_charge = Requests(request_value=value, request_amount=amount, endpoint=endpoint)
-    db.session.add(db_charge)
-    db.session.commit()
+# User signup [create new user]
+@app.post("/user/signup", tags=["user"])
+def user_signup(user: UserSchema = Body(default=None)):
+    db_user = User(fullname=user.fullname, email=user.email, password=user.password)
+    users.append(user)
+    return signJWT(user.email)
 
-    return
+def check_user(data: UserLoginSchema):
+    for user in users:
+        if user.email == data.email and user.password == data.password:
+            return True
+        return False
+
+@app.post("/user/login", tags=["user"])
+def user_login(user: UserLoginSchema = Body(default=None)):
+    if check_user(user):
+        return signJWT(user.email)
+    else:
+        return {
+            "error": "Invalid login details."
+        }
+
+
+
     
-@app.post("/add-book/", response_model=SchemaBook)
+@app.post("/add-book/", dependencies=[Depends(jwtBearer())], response_model=SchemaBook)
 def add_book(book: SchemaBook):
     db_book = Book(title=book.title, rating=book.rating, author_id=book.author_id)
     db.session.add(db_book)
     db.session.commit()
+    
     return db_book
 
 @app.post("/add-author/", response_model=SchemaAuthor)

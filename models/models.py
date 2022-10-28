@@ -20,7 +20,7 @@ class Book(Base):
 
 class Author(Base):
     __tablename__ = "author"
-    id = Column(Integer, primary_key=True)
+    author_id = Column(Integer, primary_key=True)
     firstname = Column(String)
     lastname = Column(String)
     nationality = Column(String)
@@ -40,8 +40,15 @@ class Client(Base):
 
 class Requests(Base):
     __tablename__ = "requests"
-    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, primary_key=True, index=True)
     request_value = Column(Float)
     request_amount = Column(Integer)
     endpoint = Column(String)
 
+
+class User(Base):
+    __tablename__ = "users"
+    user_id = Column(Integer, primary_key=True, index=True)
+    fullname = Column(String)
+    email = Column(String)
+    password = Column(String)
