@@ -1,7 +1,5 @@
 from email.policy import default
-import hashlib
 import os
-import bcrypt
 import uvicorn
 from fastapi import FastAPI, HTTPException, Body, Depends
 from fastapi_sqlalchemy import DBSessionMiddleware, db
@@ -15,7 +13,7 @@ from schema.schema import Client as SchemaClient
 from schema.schema import UserSchema, UserLoginSchema
 from auth.jwt_handler import signJWT
 from auth.jwt_bearer import jwtBearer
-
+from auth.login import Hasher, check_user
 
 load_dotenv(".env")
 
@@ -30,23 +28,14 @@ def root():
     return {"message": "Hello World"}
 
 
-def check_user(data: UserLoginSchema):
-    db_users = db.session.query(User).all()
-    print(f'**********{db_users}')
-    for user in db_users:
-        if user.email == data.email and user.password == data.password:
-            return True
-    return False
-
-
 # User signup [create new user]
 @app.post("/user/signup", tags=["user"])
 def user_signup(user: UserSchema = Body(default=None)):
 
-    db_user = User(fullname=user.fullname, email=user.email, password=user.password)
+    db_user = User(fullname=user.fullname, email=user.email, password=Hasher.get_password_hash(user.password))
     db.session.add(db_user)
     db.session.commit()
-    # users.append(user)
+
     return signJWT(user.email)
 
 
@@ -56,9 +45,7 @@ def user_login(user: UserLoginSchema = Body(default=None)):
     if check_user(user):
         return signJWT(user.email)
     else:
-        return {
-            "error": "Invalid login details."
-        }
+        raise HTTPException(status_code=403, detail="Wrong login information")
 
 
     
