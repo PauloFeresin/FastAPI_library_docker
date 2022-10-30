@@ -3,8 +3,9 @@
 import time
 import jwt
 from decouple import config
+from typing import Dict
 
-JWT_SECRET = config("SECRET_KEY")
+JWT_SECRET = config("secret")
 JWT_ALGORITHM = config("algorithm")
 
 # This returns the generated tokens
@@ -14,7 +15,7 @@ def token_response(token: str):
     }
 
 # This is used for signing the JWT string
-def signJWT(userID: str):
+def signJWT(userID: str) -> Dict[str, str]:
     payload = {
         "userID": userID,
         "expiry": time.time() + 600
@@ -22,9 +23,10 @@ def signJWT(userID: str):
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token_response(token)
 
-def decodeJWT(token: str):
+def decodeJWT(token: str) -> dict:
     try:
-        decode_token = jwt.decode(token, JWT_SECRET, algorithm=JWT_ALGORITHM)
+        decode_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         return decode_token if decode_token['expires'] >= time.time() else None
     except:
         return {}
+

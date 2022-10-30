@@ -12,27 +12,10 @@ class UserSchema(BaseModel):
     fullname: str = Field(default=None)
     email: EmailStr = Field(default=None)
     password: str = Field(default=None)
-    class Config:
-        the_schema = {
-            "user_demo": {
-                "name": "Paulo",
-                "email": "teste@teste.com",
-                "password": "1234"
-            }
-        }
 
 class UserLoginSchema(BaseModel):
     email: EmailStr = Field(default=None)
     password: str = Field(default=None)
-    class Config:
-        the_schema = {
-            "user_demo": {
-                "email": "teste@teste.com",
-                "password": "1234"
-            }
-        }
-
-
 
 
 class Books(BaseModel):
