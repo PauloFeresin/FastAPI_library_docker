@@ -16,9 +16,13 @@ from auth.login import Hasher, check_user
 app = APIRouter()
 
 
+@app.get("/", tags=["welcome"],)
+def root():
+    return {"message": "Welcome"}
+
 
 # User signup [create new user]
-@app.post("/user/signup")
+@app.post("/user/signup", tags=["user"])
 def user_signup(user: UserSchema):
     try:
         db_user = User(fullname=user.fullname, email=user.email, password=Hasher.get_password_hash(user.password))
@@ -29,7 +33,7 @@ def user_signup(user: UserSchema):
     except:
         raise HTTPException(status_code=200, detail="Email already registered.")
 
-@app.post("/user/login")
+@app.post("/user/login", tags=["user"])
 def user_login(user: UserLoginSchema):
     if check_user(user):
         return signJWT(user.email)
@@ -37,7 +41,7 @@ def user_login(user: UserLoginSchema):
         raise HTTPException(status_code=403, detail="Wrong login information")
 
     
-@app.post("/add-book/", dependencies=[Depends(JWTBearer())], response_model=SchemaBook)
+@app.post("/add-book/", tags=["books"], dependencies=[Depends(JWTBearer())], response_model=SchemaBook)
 def add_book(book: SchemaBook):
     
     db_book = Book(title=book.title, rating=book.rating, author_id=book.author_id)
@@ -46,7 +50,7 @@ def add_book(book: SchemaBook):
     
     return db_book
 
-@app.post("/add-author/", dependencies=[Depends(JWTBearer())], response_model=SchemaAuthor)
+@app.post("/add-author/", tags=["books"], dependencies=[Depends(JWTBearer())], response_model=SchemaAuthor)
 def add_author(author: SchemaAuthor):
     db_author = Author(firstname=author.firstname, lastname=author.lastname, nationality=author.nationality)
     db.session.add(db_author)
@@ -54,14 +58,14 @@ def add_author(author: SchemaAuthor):
 
     return db_author
 
-@app.get("/books/")
+@app.get("/books/", tags=["books"])
 def get_books():
     charge_request(0.50, 1, "/books")
     books = db.session.query(Book).all()
 
     return books
 
-@app.post("/add-client/", dependencies=[Depends(JWTBearer())], response_model=SchemaClient)
+@app.post("/add-client/", tags=["books"], dependencies=[Depends(JWTBearer())], response_model=SchemaClient)
 def add_client(client: SchemaClient):
     db_client = Client(firstname=client.firstname, middlename=client.middlename, lastname=client.lastname)
     db.session.add(db_client)
@@ -70,7 +74,7 @@ def add_client(client: SchemaClient):
     return db_client
 
 
-@app.delete("/delete-client/{client_id}/", dependencies=[Depends(JWTBearer())])
+@app.delete("/delete-client/{client_id}/", tags=["books"], dependencies=[Depends(JWTBearer())])
 def delete_user(client_id: int):
     client = db.session.get(Client, client_id)
     if not client:
