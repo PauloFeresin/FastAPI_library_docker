@@ -1,6 +1,6 @@
 import os
 import uvicorn
-from fastapi import FastAPI, HTTPException, Body, Depends
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi_sqlalchemy import DBSessionMiddleware, db
 from dotenv import load_dotenv
 
@@ -14,16 +14,12 @@ from auth.jwt_handler import signJWT
 from auth.jwt_bearer import JWTBearer
 from auth.login import Hasher, check_user
 
-from auth.new_auth import AuthHandler
-
 load_dotenv(".env")
 
 app = FastAPI()
 
 # adds and creates db connectivity, to perform commits and such
 app.add_middleware(DBSessionMiddleware, db_url=os.environ["DATABASE_URL"])
-
-auth_handler = AuthHandler()
 
 
 @app.get("/", tags=["test"])
@@ -39,15 +35,14 @@ def user_signup(user: UserSchema):
         db.session.add(db_user)
         db.session.commit()
 
-        return auth_handler.get_password_hash(user.password)
+        return signJWT(user.email)
     except:
         raise HTTPException(status_code=200, detail="Email already registered.")
 
 @app.post("/user/login", tags=["user"])
 def user_login(user: UserLoginSchema):
     if check_user(user):
-        token = auth_handler.encode_token(user.password)
-        return { 'token': token }
+        return signJWT(user.email)
     else:
         raise HTTPException(status_code=403, detail="Wrong login information")
 
