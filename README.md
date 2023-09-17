@@ -1,8 +1,9 @@
 To run with docker-compose:
-Run:
 
-docker-compose build
-docker-compose up
+- Run:
+
+  `docker-compose build`
+  `docker-compose up`
 
 then go to http://127.0.0.1:5050/ to access PGAdmin
 
